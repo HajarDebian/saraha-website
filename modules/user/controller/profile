@@ -1,0 +1,73 @@
+const messageModel = require("../../../DB/model/message");
+const userModel = require("../../../DB/model/user");
+
+const displayProfile = async (req, res) => {
+    try {
+        const user = await userModel.findById(req.user._id)
+        res.json({ message: "Done", user })
+    } catch (error) {
+        res.json({ message: "catch errr", error })
+    }
+}
+
+const getUserById = async (req,res)=>{
+    const {id} = req.params;
+    const foundUser = await userModel.findById(id , {new:true}).select('name email phone');
+    res.json({msg:"Done:" , foundUser});
+}
+
+
+const displayAllUsers = async (req, res) => {
+    const users = await userModel.find({}).select('-password');
+    res.json({msg:"Done:" , users});
+}
+
+
+// const getDeletedUsers = async (req, res) => {
+//     const users = await userModel.oplog.findOne({'o.findOneAndDelete':'user'}).select('-password');
+//     res.json({msg:"Done:" , users});
+// }
+
+const updateUser = async (req , res)=>{
+    const id = req.user._id;
+    const {name , phone} = req.body;
+
+    const updatedUser = await userModel.findByIdAndUpdate(id, {name , phone} , {new:true}).select('-password');
+
+    if (updatedUser) {
+        res.json({msg:"your profile is updated" , updatedUser});
+    } else {
+        res.json({msg:"In-valid user id!"});
+    }
+}
+
+
+const deleteUserAdmin = async (req , res )=>{
+    const {id} = req.params;
+    const user = await userModel.findOneAndDelete(id , {new:true});
+    if (user) {
+        res.json({msg:`this user has been deleted successfully.` , user});
+    } else {
+        res.json({msg:"Invalid user id!"});
+    }
+}
+
+const deleteUserByOwner = async (req , res )=>{
+    const id = req.user._id;
+    const user = await userModel.findByIdAndDelete(id , {new:true}).select('-password');
+    if (user) {
+        res.json({msg:`this user has been deleted successfully.` , user});
+    } else {
+        res.json({msg:"Invalid user id!"});
+    }
+}
+
+module.exports = {
+    displayProfile,
+    displayAllUsers,
+    getUserById,
+    updateUser,
+    deleteUserAdmin,
+    deleteUserByOwner
+   // getDeletedUsers
+}
